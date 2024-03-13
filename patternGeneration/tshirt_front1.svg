@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:ev="http://www.w3.org/2001/xml-events" xmlns:xlink="http://www.w3.org/1999/xlink" baseProfile="tiny" height="447px" version="1.2" width="1416px">
+  <defs/>
+  <!-- Front Hem -->
+  <path d="M 738 387 L 1032 387" fill="none" stroke="black"/>
+  <!-- Front Side Right -->
+  <path d="M 1032 387 L 954 105" fill="none" stroke="black"/>
+  <!-- Front Sleeve Hole Right -->
+  <path d="M 954 105 Q 932.4 96.3 942 60" fill="none" stroke="black"/>
+  <!-- Shoulder Front Right -->
+  <path d="M 942 60 L 915 60" fill="none" stroke="black"/>
+  <!-- Neckline Front -->
+  <path d="M 855 60 Q 870.0 90 915 60" fill="none" stroke="black"/>
+  <!-- Shoulder Front Left -->
+  <path d="M 855 60 L 828 60" fill="none" stroke="black"/>
+  <!-- Front Sleeve Hole Left -->
+  <path d="M 828 60 Q 837.6 96.3 816 105" fill="none" stroke="black"/>
+  <!-- Front Side Left -->
+  <path d="M 816 105 L 738 387" fill="none" stroke="black"/>
+</svg>
