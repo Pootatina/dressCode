@@ -12,18 +12,19 @@ def generate_tshirt_front_svg(neckline_curve=False, neckline_width=30, neckline_
         neckline_endpoint_y = 60 + neckline_length
 
         # Define SVG content for the straight neckline
-        neckline_svg = f'L {neckline_endpoint_x} {neckline_endpoint_y} L 915 60'
+        neckline_svg = f'L 915 60 L {neckline_endpoint_x} {neckline_endpoint_y}'
 
     # Combine all the lines into one path
     path_d = " ".join([
         "M 738 387",  # Front Hem
+        "L 738 387",  # Front Side Left
+        "L 816 105",  # Front Sleeve Hole Left
+        "Q 837.6 96.3 828 60",  # Shoulder Front Left
+        f'{neckline_svg}',  # Neckline Front
+        "L 942 60",  # Shoulder Front Right
+        "Q 932.4 96.3 954 105",  # Front Sleeve Hole Right
         "L 1032 387",  # Front Side Right
-        "L 954 105",  # Front Sleeve Hole Right
-        "Q 932.4 96.3 942 60",  # Shoulder Front Right
-        f'M 942 60 {neckline_svg}',  # Neckline Front
-        "L 828 60",  # Shoulder Front Left
-        "Q 837.6 96.3 816 105",  # Front Sleeve Hole Left
-        "L 738 387"  # Front Side Left
+        "L 738 387",  # Front Hem
     ])
 
     # Combine SVG content
