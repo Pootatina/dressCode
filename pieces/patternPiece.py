@@ -15,8 +15,8 @@ class PatternPiece:
 
     @property
     def area(self):
-        path_area = (self.path)
-        print("Fläche des Pfades:", path_area)
+        #path_area = (self.path)
+        print("Fläche des Pfades:")#, path_area)
 
 
 p1 = PatternPiece("John", 36)

@@ -19,6 +19,19 @@ def some():
     print("path is continuous? ", paths[0].iscontinuous())
     print("path is closed? ", paths[0].isclosed())
     print(paths[0].area())
+
+    paths, attributes = svg2paths('patternGeneration/curve1.svg')
+    print(paths[0])
+    print("path is continuous? ", paths[0].iscontinuous())
+    print("path is closed? ", paths[0].isclosed())
+    print(paths[0].area())
+
+    paths, attributes = svg2paths('patternGeneration/curve2.svg')
+    print(paths[0])
+    print("path is continuous? ", paths[0].iscontinuous())
+    print("path is closed? ", paths[0].isclosed())
+    print(paths[0].area())
+    #path.py wurde angepasst weil hat zu lange gedauert
     
 
 # Press the green button in the gutter to run the script.
