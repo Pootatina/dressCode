@@ -1,30 +1,46 @@
-def generate_tshirt_back_svg(neckline_curve=False, neckline_width=30, neckline_length=60, filename="tshirt_back.svg"):
-    if neckline_curve:
-        # Calculate control point for neckline curve
-        control_point_x = 915 - neckline_width / 2
-        control_point_y = 60 + (neckline_length - 60)  # Ensure symmetry about the centerline
-
-        # Define SVG content for the curved neckline
-        neckline_svg = f'Q {control_point_x} {control_point_y} 915 60'
-    else:
-        # Calculate endpoint for straight neckline
-        neckline_endpoint_x = 855 + neckline_width / 2
-        neckline_endpoint_y = 60 + neckline_length
-
-        # Define SVG content for the straight neckline
-        neckline_svg = f'L 915 60 L {neckline_endpoint_x} {neckline_endpoint_y}'
-
+def generate_shirt_back_svg(side_width_back=5, side_height_back=40,
+                             neckline_width_back=20, neckline_height_back=5,
+                             sleeve_width_back=10, sleeve_height_back=30,
+                             shoulder_width_back=15, shoulder_height_back=5,
+                             width=80, length=60,
+                             filename="tshirt_front.svg"):
+    width_all = (2 * sleeve_width_back) + (2 * shoulder_width_back) + neckline_width_back
+    point_a_x = 100
+    point_a_y = 100
+    point_b_x = point_a_x + side_width_back
+    point_b_y = point_a_y - side_height_back
+    point_bc_x = point_b_x + sleeve_width_back
+    point_bc_y = point_b_y  # maybe minus something
+    point_c_x = point_b_x + sleeve_width_back
+    point_c_y = point_b_y - sleeve_height_back
+    point_d_x = point_c_x + shoulder_width_back
+    point_d_y = point_c_y - shoulder_height_back
+    point_e_x = point_d_x + neckline_width_back
+    point_e_y = point_d_y
+    point_f_x = point_e_x + shoulder_width_back
+    point_f_y = point_e_y + shoulder_height_back
+    point_fg_x = point_f_x
+    point_fg_y = point_f_y + sleeve_height_back
+    point_g_x = point_f_x + sleeve_width_back
+    point_g_y = point_f_y + sleeve_height_back
+    point_h_x = point_g_x + side_width_back
+    point_h_y = point_g_y + side_height_back
     # Combine all the lines into one path
     path_d = " ".join([
-        "M 738 387",  # Front Hem
-        "L 738 387",  # Front Side Left
-        "L 816 105",  # Front Sleeve Hole Left
-        "Q 837.6 96.3 828 60",  # Shoulder Front Left
-        f'{neckline_svg}',  # Neckline Front
-        "L 942 60",  # Shoulder Front Right
-        "Q 932.4 96.3 954 105",  # Front Sleeve Hole Right
-        "L 1032 387",  # Front Side Right
-        "L 738 387",  # Close path (Back to start)
+        "M", str(point_a_x), str(point_a_y),  # Start (A)
+        # where to start
+        "L", str(point_b_x), str(point_b_y),  # Front Side Left (B) 1000 1400
+        # could be in winkel
+        "Q", str(point_bc_x), str(point_bc_y), str(point_c_x), str(point_c_y),  # Front Sleeve Hole Left (C)
+        "L", str(point_d_x), str(point_d_y),  # Shoulder Front Right (D)
+        "A", str(neckline_width_back / 2)  # radius x achse ellipse
+        , str(neckline_height_back / 2)  # radius y achse ellipse
+        , "0 0 0",
+        str(point_e_x), str(point_e_y),
+        "L", str(point_f_x), str(point_f_y),  # Shoulder right (F)
+        "Q", str(point_fg_x), str(point_fg_y), str(point_g_x), str(point_g_y),  # Front Sleeve Hole right (G)
+        "L", str(point_h_x), str(point_h_y),  # Front Side Right
+        "L", str(point_a_x), str(point_a_y)  # Front Hem
     ])
 
     # Combine SVG content
@@ -37,8 +53,8 @@ def generate_tshirt_back_svg(neckline_curve=False, neckline_width=30, neckline_l
     with open(filename, "w") as f:
         f.write(svg_content)
 
-    print(f"SVG pattern for back saved to {filename}")
+    print(f"SVG pattern for front saved to {filename}")
+
 
 # Example usage:
-generate_tshirt_back_svg(neckline_curve=True, neckline_width=40, neckline_length=30, filename="curve-back.svg")  # Generate SVG with curved neckline for the back
-generate_tshirt_back_svg(neckline_curve=False, neckline_width=50, neckline_length=30, filename="edge-back.svg") # Generate SVG with straight neckline for the back
+generate_shirt_back_svg(filename="back.svg")  # Generate SVG with curved neckline
