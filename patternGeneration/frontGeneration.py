@@ -2,7 +2,7 @@ from svgpathtools import parse_path
 
 
 def generate_shirt_front_svg(side_width_front=5, side_height_front=40,
-                             neckline_width_front=20, neckline_height_front=30,
+                             neckline_width_front=20, neckline_height_front=50,
                              sleeve_width_front=10, sleeve_height_front=30,
                              shoulder_width_front=15, shoulder_height_front=5,
                              width=80, length=60,
@@ -37,7 +37,7 @@ def generate_shirt_front_svg(side_width_front=5, side_height_front=40,
         "Q", str(point_bc_x), str(point_bc_y), str(point_c_x), str(point_c_y),  # Front Sleeve Hole Left (C)
         "L", str(point_d_x), str(point_d_y),  # Shoulder Front Right (D)
         "A", str(neckline_width_front / 2)  # radius x achse ellipse
-        , str(neckline_height_front / 2)  # radius y achse ellipse
+        , str(neckline_height_front)  # radius y achse ellipse
         , "0 0 0",
         str(point_e_x), str(point_e_y),
         "L", str(point_f_x), str(point_f_y),  # Shoulder right (F)

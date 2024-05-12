@@ -2,12 +2,28 @@
 
 # Press Umschalt+F10 to execute it or replace it with your code.
 # Press Double Shift to search everywhere for classes, files, tool windows, actions, and settings.
+from typing import List
+
 from pieces import back
 from pieces import front
 from pieces import pattern
 from pieces import patternPiece
 from pieces import sleeve
 from svgpathtools import svg2paths, wsvg
+from deap import base, creator, tools, algorithms
+
+creator.create("FitnessMin", base.Fitness, weights=(-1.0,))
+creator.create("Individual", list, fitness=creator.FitnessMin)
+
+FrontPattern = List[int]
+BackPattern = List[int]
+LeftSleevePattern = List[int]
+RightSleevePattern = List[int]
+Pattern = [FrontPattern, BackPattern, LeftSleevePattern, RightSleevePattern]
+Population = List[Pattern]
+
+def generate_pattern()-> Pattern:
+    return
 
 def print_hi(name):
     # Use a breakpoint in the code line below to debug your script.

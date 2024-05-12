@@ -1,4 +1,4 @@
-def generate_shirt_back_svg(side_width_back=5, side_height_back=40,
+def generate_shirt_back_svg(side_width_back=-5, side_height_back=40,
                              neckline_width_back=20, neckline_height_back=5,
                              sleeve_width_back=10, sleeve_height_back=30,
                              shoulder_width_back=15, shoulder_height_back=5,
