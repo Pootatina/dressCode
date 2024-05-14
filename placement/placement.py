@@ -43,4 +43,11 @@ def tryout():
 
     drawing.save()
 
-tryout()
+# tryout()
+# svgHelper.save_polygon_to_svg(patternGeneratorSymmetry.generate_shirt_back_polygon(hof[0]), "back1.svg")
+# svgHelper.save_polygon_to_svg(patternGeneratorSymmetry.generate_right_sleeve_polygon(hof[0]), "sleeve.svg")
+# svgHelper.save_polygon_to_svg(shirt_front, "front1.svg")
+# svgHelper.save_polygon_to_svg(patternGeneratorAsymmetry.generate_shirt_front_polygon(hof[1]), "front2.svg")
+# print(hof[0]['waist_width'])
+# svgHelper.save_polygon_to_svg(waste, "test.svg")
+# svgHelper.save_polygons_to_svg([waste[0], shirt_front, waste[0], shirt_front, waste[0], shirt_front, waste[0], sleeve], "all.svg")

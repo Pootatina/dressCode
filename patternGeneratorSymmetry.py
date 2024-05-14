@@ -93,7 +93,7 @@ def generate_shirt_front_polygon(measurements):
     polygon = Polygon(points)
     return polygon
 
-def generate_left_sleeve_polygon(measurements):
+def generate_sleeve_polygon(measurements):
 
     armhole_width = measurements['armhole_width_left']
     armhole_height = measurements['armhole_height_left']
@@ -125,37 +125,6 @@ def generate_left_sleeve_polygon(measurements):
     polygon = Polygon(points)
     return polygon
 
-def generate_right_sleeve_polygon(measurements):
-
-    armhole_width = measurements['armhole_width_right']
-    armhole_height = measurements['armhole_height_right']
-    sleeve_length = measurements['sleeve_length_right']
-    sleeve_width = measurements['sleeve_width_right']
-    side_width = (armhole_height*2 - sleeve_width)/2
-    side_height = sleeve_length - armhole_width
-
-    # Base points
-    point_a = (150, 300)   # Start point
-    point_b = (point_a[0] + side_width, point_a[1] - side_height)  # Start of right sleeve curve
-    point_c = (point_b[0] + armhole_height, point_b[1] - armhole_width)  # End of left sleeve curve
-    point_d = (point_c[0] + armhole_height, point_c[1] + armhole_width)  #start of right sleeve curve
-    point_e = (point_d[0] + side_width, point_d[1] + side_height)  # End of right sleeve curve
-
-    # Control points for inward curving sleeves
-    control_left = (point_b[0] + armhole_width / 2, point_c[1])
-    control_right = (point_d[0] - armhole_width / 2, point_c[1])
-
-    # Generate curves using Bézier
-    curve_left = bezierCode.bezier_curve(point_b, control_left, point_c)
-    curve_right = bezierCode.bezier_curve(point_c, control_right, point_d)
-
-
-    # Points list, including curves
-    points = [point_a, *curve_left,  *curve_right, point_e, point_a]
-
-    # Create the polygon from the points
-    polygon = Polygon(points)
-    return polygon
 
 
 # Assume bezier_curve function is already defined and correctly computes the curve points

@@ -1,19 +1,17 @@
 import random
-from deap import creator, base, tools, algorithms
-import numpy
+
+import shapely
+from deap import creator
 
 import patternGeneratorAsymmetry
 import patternGeneratorSymmetry
-import svgHelper
 
 # Setup DEAP fitness and individual structures
-creator.create("FitnessMax", base.Fitness, weights=(1.0,))
-creator.create("Individual", dict, fitness=creator.FitnessMax)
 
 # Define possible values for the measurements
 '''measurements = [
     Measure(name='neckline_width', bounds=(20, 30)),
-    Measure(name='neckline_height_front', bounds=(5, 20)),
+    Measure(name='neckline_height_front', bounds=(5, 30)),
     Measure(name='neckline_height_back', bounds=(2, 30)),
     Measure(name='shoulder_height_right', bounds=(0, 10)),
     Measure(name='shoulder_height_left', bounds=(0, 10)),
@@ -48,8 +46,6 @@ bounds = [
 measurements_bounds_dict = dict(zip(measurements, bounds))
 
 
-toolbox = base.Toolbox()
-
 # Function to initialize individuals with random measurements within defined bounds.
 def init_individual():
     """ Initialize an individual as a dictionary with random values within the bounds. """
@@ -58,17 +54,121 @@ def init_individual():
          measurements_bounds_dict})
 
 
-# Evaluation function
-def evaluate(individual):
-    back = patternGeneratorSymmetry.generate_shirt_back_polygon(individual)
+# Evaluation functions
+def evaluateFixedSymmetry(individual, waste):
     front = patternGeneratorSymmetry.generate_shirt_front_polygon(individual)
-    sleeveLeft = patternGeneratorSymmetry.generate_left_sleeve_polygon(individual)
-    sleeveRight = patternGeneratorSymmetry.generate_right_sleeve_polygon(individual)
-    area = back.area + front.area + sleeveLeft.area + sleeveRight.area # Access the area property correctly
+    back = patternGeneratorSymmetry.generate_shirt_back_polygon(individual)
+    sleeveLeft = patternGeneratorSymmetry.generate_sleeve_polygon(individual)
+    sleeveRight = patternGeneratorSymmetry.generate_sleeve_polygon(individual)
+    if waste[0].contains(front) and waste[1].contains(back) and waste[2].contains(sleeveLeft) and waste[3].contains(
+            sleeveRight):
+        area = back.area + front.area + sleeveLeft.area + sleeveRight.area
+    else:
+        area = 0
+    return (area,)  # Return a tuple with the are
+
+
+def evaluateFixedAsymmetry(individual, waste):
+    front = patternGeneratorAsymmetry.generate_shirt_front_polygon(individual)
+    back = patternGeneratorAsymmetry.generate_shirt_back_polygon(individual)
+    sleeveLeft = patternGeneratorAsymmetry.generate_left_sleeve_polygon(individual)
+    sleeveRight = patternGeneratorAsymmetry.generate_right_sleeve_polygon(individual)
+    if waste[0].contains(front) and waste[1].contains(back) and waste[2].contains(sleeveLeft) and waste[3].contains(
+            sleeveRight):
+        area = back.area + front.area + sleeveLeft.area + sleeveRight.area
+    else:
+        area = 0
     return (area,)  # Return a tuple with the area
 
 
-def cxDictUniform(ind1, ind2, indpb):
+def evaluateCentroidSymmetry(individual, waste):
+    front = patternGeneratorSymmetry.generate_shirt_front_polygon(individual)
+    back = patternGeneratorSymmetry.generate_shirt_back_polygon(individual)
+    sleeveLeft = patternGeneratorSymmetry.generate_sleeve_polygon(individual)
+    sleeveRight = patternGeneratorSymmetry.generate_sleeve_polygon(individual)
+
+    frontCentroid = front.centroid
+    backCentroid = back.centroid
+    sleeveLeftCentroid = sleeveLeft.centroid
+    sleeveRightCentroid = sleeveRight.centroid
+
+    # Correcting translation logic
+    translated_front = shapely.affinity.translate(front, xoff=waste[0].centroid.x - frontCentroid.x,
+                                                  yoff=waste[0].centroid.y - frontCentroid.y)
+    translated_back = shapely.affinity.translate(back, xoff=waste[1].centroid.x - backCentroid.x,
+                                                 yoff=waste[1].centroid.y - backCentroid.y)
+    translated_sleeveLeft = shapely.affinity.translate(sleeveLeft, xoff=waste[2].centroid.x - sleeveLeftCentroid.x,
+                                                       yoff=waste[2].centroid.y - sleeveLeftCentroid.y)
+    translated_sleeveRight = shapely.affinity.translate(sleeveRight, xoff=waste[3].centroid.x - sleeveRightCentroid.x,
+                                                        yoff=waste[3].centroid.y - sleeveRightCentroid.y)
+
+    # Evaluate area based on containment and rotation conditions
+    area = 0
+    if waste[0].contains(translated_front) or waste[0].contains(
+            shapely.affinity.rotate(translated_front, 180, 'center')):
+        if waste[1].contains(translated_back) or waste[1].contains(
+                shapely.affinity.rotate(translated_back, 180, 'center')):
+            if waste[2].contains(translated_sleeveLeft) or waste[2].contains(
+                    shapely.affinity.rotate(translated_sleeveLeft, 180, 'center')):
+                if waste[3].contains(translated_sleeveRight) or waste[3].contains(
+                        shapely.affinity.rotate(translated_sleeveRight, 180, 'center')):
+                    area = back.area + front.area + sleeveLeft.area + sleeveRight.area
+
+    return (area,)  # Return a tuple with the area
+
+
+def evaluateCentroidAsymmetry(individual, waste):
+    # Generate the polygons
+    front = patternGeneratorAsymmetry.generate_shirt_front_polygon(individual)
+    back = patternGeneratorAsymmetry.generate_shirt_back_polygon(individual)
+    sleeveLeft = patternGeneratorAsymmetry.generate_left_sleeve_polygon(individual)
+    sleeveRight = patternGeneratorAsymmetry.generate_right_sleeve_polygon(individual)
+
+    #accessing centroids
+    frontCentroid = front.centroid
+    backCentroid = back.centroid
+    sleeveLeftCentroid = sleeveLeft.centroid
+    sleeveRightCentroid = sleeveRight.centroid
+
+    # Correcting translation logic
+    translated_front = shapely.affinity.translate(front, xoff=waste[0].centroid.x - frontCentroid.x,
+                                                  yoff=waste[0].centroid.y - frontCentroid.y)
+    translated_back = shapely.affinity.translate(back, xoff=waste[1].centroid.x - backCentroid.x,
+                                                 yoff=waste[1].centroid.y - backCentroid.y)
+    translated_sleeveLeft = shapely.affinity.translate(sleeveLeft, xoff=waste[2].centroid.x - sleeveLeftCentroid.x,
+                                                       yoff=waste[2].centroid.y - sleeveLeftCentroid.y)
+    translated_sleeveRight = shapely.affinity.translate(sleeveRight, xoff=waste[3].centroid.x - sleeveRightCentroid.x,
+                                                        yoff=waste[3].centroid.y - sleeveRightCentroid.y)
+
+    # Evaluate area based on containment and rotation conditions
+    area = 0
+    if waste[0].contains(translated_front) or waste[0].contains(
+            shapely.affinity.rotate(translated_front, 180, 'center')):
+        if waste[1].contains(translated_back) or waste[1].contains(
+                shapely.affinity.rotate(translated_back, 180, 'center')):
+            if waste[2].contains(translated_sleeveLeft) or waste[2].contains(
+                    shapely.affinity.rotate(translated_sleeveLeft, 180, 'center')):
+                if waste[3].contains(translated_sleeveRight) or waste[3].contains(
+                        shapely.affinity.rotate(translated_sleeveRight, 180, 'center')):
+                    area = back.area + front.area + sleeveLeft.area + sleeveRight.area
+
+    return (area,)  # Return a tuple with the area
+
+
+def evaluateMove(individual, waste):
+    shapely.affinity.translate(waste, xoff=50, yoff=100, zoff=0.0)
+    if waste.contains(patternGeneratorSymmetry.generate_shirt_front_polygon(individual)):
+        back = patternGeneratorSymmetry.generate_shirt_back_polygon(individual)
+        front = patternGeneratorSymmetry.generate_shirt_front_polygon(individual)
+        sleeveLeft = patternGeneratorSymmetry.generate_sleeve_polygon(individual)
+        sleeveRight = patternGeneratorSymmetry.generate_sleeve_polygon(individual)
+        area = back.area + front.area + sleeveLeft.area + sleeveRight.area  # Access the area property correctly
+    else:
+        area = 0
+    return (area,)  # Return a tuple with the area
+
+
+def mate(ind1, ind2, indpb):
     """ Custom crossover that performs uniform crossover for dictionary-based individuals. """
     for key in ind1:
         if random.random() < indpb:
@@ -76,7 +176,14 @@ def cxDictUniform(ind1, ind2, indpb):
     return ind1, ind2
 
 
-def mutUniformInt(individual, indpb):
+def mutate(individual, indpb):
+    if random.random() < 0.5:
+        return mutateNew(individual, indpb)
+    else:
+        return mutateDiff(individual, indpb)
+
+
+def mutateNew(individual, indpb):
     """ Custom mutation that mutates an integer in a dictionary based on its specific bounds. """
     for key in individual:
         if random.random() < indpb:
@@ -84,29 +191,16 @@ def mutUniformInt(individual, indpb):
     return individual,
 
 
-toolbox.register("individual", init_individual)
-toolbox.register("population", tools.initRepeat, list, toolbox.individual)
-toolbox.register("evaluate", evaluate)
-toolbox.register("mate", cxDictUniform, indpb=0.5)
-toolbox.register("mutate", mutUniformInt, indpb=0.2)
-toolbox.register("select", tools.selTournament, tournsize=3)
+def mutateDiff(individual, indpb):
+    """ Custom mutation that mutates an integer in a dictionary based on its specific bounds. """
+    for key in individual:
+        if random.random() < indpb:
+            diff = random.randint(-5, 5)
+            if measurements_bounds_dict[key][0] <= (individual[key] - diff) <= measurements_bounds_dict[key][1]:
+                individual[key] = individual[key] - diff
+            elif measurements_bounds_dict[key][0] <= (individual[key] + diff) <= measurements_bounds_dict[key][1]:
+                individual[key] = individual[key] + diff
+            else:
+                individual[key] = individual[key]
 
-# Generate population and run the algorithm
-population = toolbox.population(n=10)
-hof = tools.HallOfFame(10)
-stats = tools.Statistics(key=lambda ind: ind.fitness.values)
-stats.register("avg", numpy.mean)
-stats.register("std", numpy.std)
-stats.register("min", numpy.min)
-stats.register("max", numpy.max)
-
-result, logbook = algorithms.eaSimple(population, toolbox, cxpb=0.5, mutpb=0.2, ngen=10,
-                                      stats=stats, halloffame=hof, verbose=True)
-
-# Print results
-print("Best individual is:", hof[0], "with fitness:", hof[0].fitness.values[0])
-svgHelper.save_polygon_to_svg(patternGeneratorSymmetry.generate_shirt_back_polygon(hof[0]), "back1.svg")
-svgHelper.save_polygon_to_svg(patternGeneratorSymmetry.generate_right_sleeve_polygon(hof[0]), "sleeve.svg")
-svgHelper.save_polygon_to_svg(patternGeneratorSymmetry.generate_shirt_front_polygon(hof[0]), "front1.svg")
-svgHelper.save_polygon_to_svg(patternGeneratorAsymmetry.generate_shirt_front_polygon(hof[1]), "front2.svg")
-print(hof[0]['waist_width'])
+    return individual,
