@@ -55,6 +55,32 @@ def save_polygons_to_svg(polygons, filename):
 
     print(f"SVG file saved to {filename}")
 
+def save_inPlace_polygons_to_svg(polygons, filename):
+    # Create a new SVG drawing
+    dwg = svgwrite.Drawing(filename, profile='tiny')
+    count = 0
+
+    # Loop through each polygon in the list
+    for polygon in polygons:
+
+        if count % 2 == 0:
+            color = "rgb(77, 161, 169)"
+        else:
+            color = "rgb(255, 167, 51)"
+        # Extract polygon exterior coordinates
+        points = polygon.exterior.coords
+
+        count = count + 1
+        # Convert points to a path data string
+        path_data = "M" + " L".join(f"{x},{y}" for x, y in points) + " Z"
+
+        # Add the path to the drawing with consistent fill and stroke
+        dwg.add(dwg.path(d=path_data, fill=color, stroke="black", stroke_width=1))
+
+    # Save the SVG to a file
+    dwg.save()
+
+    print(f"SVG file saved to {filename}")
 
 def save_polygons_cutout_to_svg(polygons, filename):
     # Create a new SVG drawing

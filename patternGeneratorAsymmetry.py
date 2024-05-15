@@ -187,8 +187,4 @@ print("Back Armhole Length:", back_armhole_length)
 print("Total Armhole Length:", total_armhole_length)
 print("Sleeve Top Length:", sleeve_top_length)
 
-# Check if they match or how close they are
-if np.isclose(total_armhole_length, sleeve_top_length, rtol=0.05):  # Allowing 5% tolerance
-    print("The armhole and sleeve top lengths are approximately equal.")
-else:
-    print("There is a discrepancy in the lengths.")
+

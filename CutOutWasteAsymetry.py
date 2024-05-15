@@ -1,10 +1,8 @@
-# First try with fixed waste
 from functools import partial
 import random
 
 import numpy
 import shapely
-import shapely as shapely
 from deap import creator, base, tools, algorithms
 from shapely import Polygon
 
@@ -13,28 +11,32 @@ import patternGeneratorAsymmetry
 import svgHelper
 import wasteGeneration
 
+# Define the dimensions of the fabric rectangle
+fabric_width, fabric_height = 600, 600
+fabric = Polygon([(0, 0), (fabric_width, 0), (fabric_width, fabric_height), (0, fabric_height)])
+
+# Function to generate random cutouts
+def generate_random_cutouts(num_cutouts, fabric, min_size, max_size):
+    cutouts = []
+    for _ in range(num_cutouts):
+        w = random.randint(min_size, max_size)
+        h = random.randint(min_size, max_size)
+        x = random.randint(0, fabric_width - w)
+        y = random.randint(0, fabric_height - h)
+        cutout = Polygon([(x, y), (x + w, y), (x + w, y + h), (x, y + h)])
+        cutouts.append(cutout)
+    return cutouts
+
+# Generate 4 random cutouts within the fabric
+cutouts = generate_random_cutouts(4, fabric, 50, 200)
+
+# Combine the fabric and cutouts into a single Polygon with holes
+waste = Polygon(fabric.exterior.coords, [cutout.exterior.coords for cutout in cutouts])
+
+
 creator.create("FitnessMax", base.Fitness, weights=(1.0,))
 creator.create("Individual", dict, fitness=creator.FitnessMax)
 
-fabric = Polygon([(0, 0), (0, 600), (600, 600), (600, 0)])
-holes = ({key: random.randint(npDressCode.measurements_bounds_dict[key][0], npDressCode.measurements_bounds_dict[key][1]) for key in
-         npDressCode.measurements_bounds_dict})
-hole1 = patternGeneratorAsymmetry.generate_shirt_front_polygon(holes)
-hole2 = patternGeneratorAsymmetry.generate_shirt_back_polygon(holes)
-hole3 = patternGeneratorAsymmetry.generate_right_sleeve_polygon(holes)
-hole4 = patternGeneratorAsymmetry.generate_left_sleeve_polygon(holes)
-
-#random places
-hole1 = shapely.affinity.translate(hole1, xoff=random.randint(-150, 500),
-                                         yoff=random.randint(-200, 300), zoff=0.0)
-hole2 = shapely.affinity.translate(hole2, xoff=random.randint(-150, 500),
-                                         yoff=random.randint(-200, 300), zoff=0.0)
-hole3 = shapely.affinity.translate(hole3, xoff=random.randint(-150, 500),
-                                         yoff=random.randint(-200, 300), zoff=0.0)
-hole4 = shapely.affinity.translate(hole4, xoff=random.randint(-150, 500),
-                                         yoff=random.randint(-200, 300), zoff=0.0)
-
-waste = Polygon(fabric, holes=[hole1, hole2, hole3, hole4])
 
 toolbox = base.Toolbox()
 
@@ -46,7 +48,7 @@ toolbox.register("mutate", npDressCode.mutate, indpb=0.2)
 toolbox.register("select", tools.selTournament, tournsize=5)
 
 # Generate population and run the algorithm
-population = toolbox.population(n=10)
+population = toolbox.population(n=100)
 hof = tools.HallOfFame(3)
 stats = tools.Statistics(key=lambda ind: ind.fitness.values)
 stats.register("avg", numpy.mean)
@@ -64,7 +66,6 @@ shirt_back = patternGeneratorAsymmetry.generate_shirt_back_polygon(hof[0])
 left_sleeve = patternGeneratorAsymmetry.generate_left_sleeve_polygon(hof[0])
 right_sleeve = patternGeneratorAsymmetry.generate_right_sleeve_polygon(hof[0])
 
-
 front = shapely.affinity.translate(shirt_front, xoff=hof[0]['front_x_shift'], yoff=hof[0]['front_y_shift'],
                                    zoff=0.0)
 back = shapely.affinity.translate(shirt_back, xoff=hof[0]['back_x_shift'],
@@ -74,6 +75,7 @@ sleeveLeft = shapely.affinity.translate(left_sleeve, xoff=hof[0]['sleeve_left_x_
 sleeveRight = shapely.affinity.translate(right_sleeve, xoff=hof[0]['sleeve_right_x_shift'],
                                          yoff=hof[0]['sleeve_right_y_shift'], zoff=0.0)
 
-svgHelper.save_holy_polygons_to_svg(
-    [waste, front, back, sleeveLeft, sleeveRight],
-    "images/bestCutOutWasteCentroidAsymmetry.svg")
+
+svgHelper.save_inPlace_polygons_to_svg(
+    [waste[0], front, waste[1], back, waste[2], sleeveLeft, waste[3], sleeveRight],
+    "images/bestRandomWasteCentroidAsymmetry.svg")

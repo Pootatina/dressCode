@@ -2,7 +2,7 @@ import random
 
 import shapely
 from deap import creator
-from shapely import affinity
+from shapely import Polygon, affinity
 
 import patternGeneratorAsymmetry
 import patternGeneratorSymmetry
@@ -10,6 +10,7 @@ import patternGeneratorSymmetry
 # Setup DEAP fitness and individual structures
 
 # Define possible values for the measurements
+import svgHelper
 
 '''measurements = [
     Measure(name='neckline_width', bounds=(20, 30)),
@@ -38,8 +39,7 @@ measurements = [
     'armhole_height_left', 'armhole_width_right', 'armhole_width_left',
     'sleeve_width_right', 'sleeve_width_left', 'sleeve_length_right',
     'sleeve_length_left', 'bust_width', 'side_length_right', 'side_length_left',
-    'waist_width', 'front_x_shift', 'front_y_shift', 'back_x_shift', 'back_y_shift', 'sleeve_left_x_shift',
-    'sleeve_left_y_shift', 'sleeve_right_x_shift', 'sleeve_right_y_shift'
+    'waist_width', 'front_x_shift', 'front_y_shift', 'back_x_shift', 'back_y_shift', 'sleeve_left_x_shift', 'sleeve_left_y_shift', 'sleeve_right_x_shift','sleeve_right_y_shift'
 ]
 bounds = [
     (20, 30), (5, 20), (2, 30), (0, 10), (0, 10), (20, 30), (20, 30), (0, 15),
@@ -127,7 +127,7 @@ def evaluateCentroidAsymmetry(individual, waste):
     sleeveLeft = patternGeneratorAsymmetry.generate_left_sleeve_polygon(individual)
     sleeveRight = patternGeneratorAsymmetry.generate_right_sleeve_polygon(individual)
 
-    # accessing centroids
+    #accessing centroids
     frontCentroid = front.centroid
     backCentroid = back.centroid
     sleeveLeftCentroid = sleeveLeft.centroid
@@ -157,7 +157,6 @@ def evaluateCentroidAsymmetry(individual, waste):
 
     return (area,)  # Return a tuple with the area
 
-
 def evaluateCutOutAsymmetry(individual, waste):
     # Generate polygons for each shirt component using the pattern generator
     front = patternGeneratorAsymmetry.generate_shirt_front_polygon(individual)
@@ -166,31 +165,57 @@ def evaluateCutOutAsymmetry(individual, waste):
     sleeveRight = patternGeneratorAsymmetry.generate_right_sleeve_polygon(individual)
 
     # Translate each component based on individual's specific shift data
-    front = affinity.translate(front,
-                               xoff=individual['front_x_shift'],
-                               yoff=individual['front_y_shift'])
-    back = affinity.translate(back,
-                              xoff=individual['back_x_shift'],
-                              yoff=individual['back_y_shift'])
-    sleeveLeft = affinity.translate(sleeveLeft,
-                                    xoff=individual['sleeve_left_x_shift'],
-                                    yoff=individual['sleeve_left_y_shift'])
-    sleeveRight = affinity.translate(sleeveRight,
-                                     xoff=individual['sleeve_right_x_shift'],
-                                     yoff=individual['sleeve_right_y_shift'])
+    front = affinity.translate(front, xoff=individual['front_x_shift'], yoff=individual['front_y_shift'])
+    back = affinity.translate(back, xoff=individual['back_x_shift'], yoff=individual['back_y_shift'])
+    sleeveLeft = affinity.translate(sleeveLeft, xoff=individual['sleeve_left_x_shift'], yoff=individual['sleeve_left_y_shift'])
+    sleeveRight = affinity.translate(sleeveRight, xoff=individual['sleeve_right_x_shift'], yoff=individual['sleeve_right_y_shift'])
 
     # Initialize total area used
     area = 0
 
-    # Check each component's placement within the waste material
-    # and ensure that components do not cross over each other
-    if waste.contains(front) and not (
-            front.intersects(back) or front.intersects(sleeveLeft) or front.intersects(sleeveRight)):
-        if waste.contains(back) and not (back.intersects(sleeveLeft) or back.intersects(sleeveRight)):
-            if waste.contains(sleeveLeft) and not sleeveLeft.intersects(sleeveRight):
-                if waste.contains(sleeveRight):
-                    # Sum the areas of all components if all conditions are met
-                    area = front.area + back.area + sleeveLeft.area + sleeveRight.area
+
+    # Define a function to check if a component fits in any waste piece
+    def fits_in_any_waste(component):
+        return waste.contains(component)
+
+    # Check if all components fit in any of the waste pieces and don't intersect each other
+    if ((fits_in_any_waste(front) and not (front.intersects(back) or front.intersects(sleeveLeft) or front.intersects(sleeveRight)))
+        and (fits_in_any_waste(back) and not (back.intersects(sleeveLeft) or back.intersects(sleeveRight)))
+        and (fits_in_any_waste(sleeveLeft) and not sleeveLeft.intersects(sleeveRight))
+        and fits_in_any_waste(sleeveRight)):
+        # Sum the areas of all components if all conditions are met
+        area = front.area + back.area + sleeveLeft.area + sleeveRight.area
+
+    return (area,)  # Return a tuple with the area
+
+def evaluatePlacementAsymmetry(individual, waste):
+    # Generate polygons for each shirt component using the pattern generator
+    front = patternGeneratorAsymmetry.generate_shirt_front_polygon(individual)
+    back = patternGeneratorAsymmetry.generate_shirt_back_polygon(individual)
+    sleeveLeft = patternGeneratorAsymmetry.generate_left_sleeve_polygon(individual)
+    sleeveRight = patternGeneratorAsymmetry.generate_right_sleeve_polygon(individual)
+
+    # Translate each component based on individual's specific shift data
+    front = affinity.translate(front, xoff=individual['front_x_shift'], yoff=individual['front_y_shift'])
+    back = affinity.translate(back, xoff=individual['back_x_shift'], yoff=individual['back_y_shift'])
+    sleeveLeft = affinity.translate(sleeveLeft, xoff=individual['sleeve_left_x_shift'], yoff=individual['sleeve_left_y_shift'])
+    sleeveRight = affinity.translate(sleeveRight, xoff=individual['sleeve_right_x_shift'], yoff=individual['sleeve_right_y_shift'])
+
+    # Initialize total area used
+    area = 0
+
+
+    # Define a function to check if a component fits in any waste piece
+    def fits_in_any_waste(component):
+        return any(w.contains(component) for w in waste)
+
+    # Check if all components fit in any of the waste pieces and don't intersect each other
+    if ((fits_in_any_waste(front) and not (front.intersects(back) or front.intersects(sleeveLeft) or front.intersects(sleeveRight)))
+        and (fits_in_any_waste(back) and not (back.intersects(sleeveLeft) or back.intersects(sleeveRight)))
+        and (fits_in_any_waste(sleeveLeft) and not sleeveLeft.intersects(sleeveRight))
+        and fits_in_any_waste(sleeveRight)):
+        # Sum the areas of all components if all conditions are met
+        area = front.area + back.area + sleeveLeft.area + sleeveRight.area
 
     return (area,)  # Return a tuple with the area
 
