@@ -16,22 +16,33 @@ fabric_width, fabric_height = 600, 600
 fabric = Polygon([(0, 0), (fabric_width, 0), (fabric_width, fabric_height), (0, fabric_height)])
 
 # Function to generate random cutouts
-def generate_random_cutouts(num_cutouts, fabric, min_size, max_size):
+def generate_valid_cutouts(num_cutouts, fabric, min_size, max_size, attempts=100):
     cutouts = []
+    fabric_width, fabric_height = fabric.bounds[2], fabric.bounds[3]  # get dimensions from fabric bounds
+
     for _ in range(num_cutouts):
-        w = random.randint(min_size, max_size)
-        h = random.randint(min_size, max_size)
-        x = random.randint(0, fabric_width - w)
-        y = random.randint(0, fabric_height - h)
-        cutout = Polygon([(x, y), (x + w, y), (x + w, y + h), (x, y + h)])
-        cutouts.append(cutout)
-    return cutouts
+        valid_cutout = False
+        for _ in range(attempts):  # Attempt to place each cutout without overlap
+            w = random.randint(min_size, max_size)
+            h = random.randint(min_size, max_size)
+            x = random.randint(0, int(fabric_width - w))  # ensure the cutout stays within fabric bounds
+            y = random.randint(0, int(fabric_height - h))
+            new_cutout = shapely.box(x, y, x + w, y + h)
+            # Check new cutout does not overlap with existing cutouts
+            if not any(new_cutout.intersects(cutout) for cutout in cutouts):
+                cutouts.append(new_cutout)
+                valid_cutout = True
+                break
+        if not valid_cutout:
+            print(f"Failed to place a valid cutout after {attempts} attempts.")
+            # If cannot place after many attempts, could adjust strategy, e.g., reduce number of cutouts or size
+
+    # Merge all cutouts with fabric to create final shape with holes
+    fabric_with_cutouts = Polygon(fabric.exterior.coords, [cut.exterior.coords for cut in cutouts])
+    return fabric_with_cutouts
 
 # Generate 4 random cutouts within the fabric
-cutouts = generate_random_cutouts(4, fabric, 50, 200)
-
-# Combine the fabric and cutouts into a single Polygon with holes
-waste = Polygon(fabric.exterior.coords, [cutout.exterior.coords for cutout in cutouts])
+waste = generate_valid_cutouts(4, fabric, 50, 200)
 
 
 creator.create("FitnessMax", base.Fitness, weights=(1.0,))
@@ -76,6 +87,5 @@ sleeveRight = shapely.affinity.translate(right_sleeve, xoff=hof[0]['sleeve_right
                                          yoff=hof[0]['sleeve_right_y_shift'], zoff=0.0)
 
 
-svgHelper.save_inPlace_polygons_to_svg(
-    [waste[0], front, waste[1], back, waste[2], sleeveLeft, waste[3], sleeveRight],
-    "images/bestRandomWasteCentroidAsymmetry.svg")
+svgHelper.save_polygons_with_holes_to_svg(
+    waste, [front, back, sleeveLeft, sleeveRight], "images/bestCutOutWasteCentroidAsymmetry.svg")

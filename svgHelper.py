@@ -109,37 +109,28 @@ def save_polygons_cutout_to_svg(polygons, filename):
 
     print(f"SVG file saved to {filename}")
 
-def save_holy_polygons_to_svg(polygons, filename):
+
+def save_polygons_with_holes_to_svg(main_polygon, other_polygons, filename):
     # Create a new SVG drawing
     dwg = svgwrite.Drawing(filename, profile='tiny')
-    count = 0
 
-    # Loop through each polygon in the list
-    for polygon in polygons:
-        # Apply translation based on the count to avoid overlap
-        if count > 0:
-            polygon = affinity.translate(polygon, xoff=100*count, yoff=0)
+    # Add the main polygon with holes
+    main_exterior = main_polygon.exterior.coords
+    main_path = "M " + " L ".join("{},{}".format(x, y) for x, y in main_exterior) + " Z"
+    dwg.add(dwg.path(d=main_path, fill="rgb(77, 161, 169)", stroke="black", stroke_width=1))
 
-        # Choose color based on even/odd count
-        color = "rgb(77, 161, 169)" if count % 2 == 0 else "rgb(255, 167, 51)"
+    # Add holes of the main polygon
+    for interior in main_polygon.interiors:
+        interior_coords = interior.coords
+        hole_path = "M " + " L ".join("{},{}".format(x, y) for x, y in interior_coords) + " Z"
+        dwg.add(dwg.path(d=hole_path, fill="none", stroke="red", stroke_width=1))
 
-        # Extract the exterior coordinates of the polygon
-        exterior_points = polygon.exterior.coords
-        path_data = "M" + " L".join(f"{x},{y}" for x, y in exterior_points) + " Z"
-
-        # Add the exterior path to the drawing
-        dwg.add(dwg.path(d=path_data, fill=color, stroke="black", stroke_width=1))
-
-        # Process each interior boundary (hole)
-        for interior in polygon.interiors:
-            interior_points = interior.coords
-            interior_path_data = "M" + " L".join(f"{x},{y}" for x, y in interior_points) + " Z"
-
-            # Add the interior path to the drawing as a hole
-            # Set fill="none" or use the same fill as the exterior to create a hole effect
-            dwg.add(dwg.path(d=interior_path_data, fill="none", stroke="black", stroke_width=1))
-
-        count += 1
+    # Add other polygons in different colors
+    colors = ["rgb(255, 167, 51)", "rgb(255, 204, 0)", "rgb(153, 204, 255)", "rgb(255, 153, 204)"]
+    for polygon, color in zip(other_polygons, colors):
+        exterior = polygon.exterior.coords
+        path = "M " + " L ".join("{},{}".format(x, y) for x, y in exterior) + " Z"
+        dwg.add(dwg.path(d=path, fill=color, stroke="black", stroke_width=1))
 
     # Save the SVG to a file
     dwg.save()
