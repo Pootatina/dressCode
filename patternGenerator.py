@@ -4,7 +4,6 @@ from shapely.geometry import Polygon, LineString
 
 
 def bezier_curve(p0, p1, p2, num_points=20):
-    """Generate points for a quadratic Bézier curve."""
     # Creating a linspace array t that goes from 0 to 1 with num_points elements
     t = np.linspace(0, 1, num_points)
 
@@ -22,7 +21,6 @@ def bezier_curve(p0, p1, p2, num_points=20):
 
 
 def bezier_curve_cubic(p0, p1, p2, p3, num_points=20):
-    """Generate points for a cubic Bézier curve."""
     t = np.linspace(0, 1, num_points)
 
     # Reshape t to be a column vector for broadcasting
@@ -44,8 +42,7 @@ def generate_shirt_back_polygon(side_width_back=5, side_height_back=40,
                                 sleeve_width_back=10, sleeve_height_back=30,
                                 shoulder_width_back=15, shoulder_height_back=5,
                                 width=80, length=60):
-
-     # Base points
+    # Base points
     point_a = (100, 100)  # Start point
     point_b = (point_a[0] + side_width_back, point_a[1] - side_height_back)  # Lower left at hem
     point_c = (point_b[0] + sleeve_width_back, point_b[1])  # Start of left sleeve curve
@@ -164,10 +161,11 @@ def save_polygon_to_svg(polygon, filename):
 
     print(f"SVG file saved to {filename}")
 
+
 def calculate_bezier_length(points):
-    """Calculate the approximate length of a Bézier curve defined by its points."""
     line = LineString(points)
     return line.length
+
 
 # Assume bezier_curve function is already defined and correctly computes the curve points
 # Generate curves for the armholes and the sleeve top

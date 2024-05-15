@@ -3,7 +3,6 @@ from functools import partial
 
 import numpy
 from deap import creator, base, tools, algorithms
-from shapely import Polygon
 
 import dressCode
 import patternGeneratorSymmetry
@@ -56,5 +55,6 @@ shirt_front = patternGeneratorSymmetry.generate_shirt_front_polygon(hof[0])
 shirt_back = patternGeneratorSymmetry.generate_shirt_back_polygon(hof[0])
 shirt_sleeve = patternGeneratorSymmetry.generate_sleeve_polygon(hof[0])
 
-svgHelper.save_polygons_to_svg([waste[0], shirt_front, waste[1], shirt_back, waste[2], shirt_sleeve, waste[3], shirt_sleeve],
-                               "images/bestMultipleWasteFixedSymmetry.svg")
+svgHelper.save_polygons_to_svg(
+    [waste[0], shirt_front, waste[1], shirt_back, waste[2], shirt_sleeve, waste[3], shirt_sleeve],
+    "images/bestMultipleWasteFixedSymmetry.svg")

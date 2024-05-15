@@ -1,9 +1,6 @@
-import numpy as np
-import svgwrite
-from shapely.geometry import Polygon, LineString
+from shapely.geometry import Polygon
 
 import bezierCode
-import svgHelper
 
 
 def generate_shirt_back_polygon(measurements):
@@ -166,25 +163,5 @@ def generate_right_sleeve_polygon(measurements):
     return polygon
 
 
-# Assume bezier_curve function is already defined and correctly computes the curve points
-# Generate curves for the armholes and the sleeve top
-# Example control points for demonstration; replace these with your actual points and control points
-front_armhole_curve = bezierCode.bezier_curve((100, 100), (110, 90), (120, 100), num_points=100)
-back_armhole_curve = bezierCode.bezier_curve((120, 100), (130, 90), (140, 100), num_points=100)
-sleeve_top_curve = bezierCode.bezier_curve_cubic((100, 100), (105, 85), (115, 85), (120, 100), num_points=100)
-
-# Calculate lengths
-front_armhole_length = bezierCode.calculate_bezier_length(front_armhole_curve)
-back_armhole_length = bezierCode.calculate_bezier_length(back_armhole_curve)
-sleeve_top_length = bezierCode.calculate_bezier_length(sleeve_top_curve)
-
-# Sum of front and back armhole lengths
-total_armhole_length = front_armhole_length + back_armhole_length
-
-# Output the lengths to compare
-print("Front Armhole Length:", front_armhole_length)
-print("Back Armhole Length:", back_armhole_length)
-print("Total Armhole Length:", total_armhole_length)
-print("Sleeve Top Length:", sleeve_top_length)
 
 

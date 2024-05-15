@@ -12,8 +12,8 @@ import svgHelper
 import wasteGeneration
 
 # Define the dimensions of the fabric rectangle
-fabric_width, fabric_height = 600, 600
-fabric = Polygon([(0, 0), (fabric_width, 0), (fabric_width, fabric_height), (0, fabric_height)])
+fabric_width, fabric_height = 400, 200
+fabric = Polygon([(5, 5), (fabric_width, 5), (fabric_width, fabric_height), (5, fabric_height)])
 
 # Function to generate random cutouts
 def generate_valid_cutouts(num_cutouts, fabric, min_size, max_size, attempts=100):
@@ -42,8 +42,7 @@ def generate_valid_cutouts(num_cutouts, fabric, min_size, max_size, attempts=100
     return fabric_with_cutouts
 
 # Generate 4 random cutouts within the fabric
-waste = generate_valid_cutouts(4, fabric, 50, 200)
-
+waste = generate_valid_cutouts(4, fabric, 10, 80)
 
 creator.create("FitnessMax", base.Fitness, weights=(1.0,))
 creator.create("Individual", dict, fitness=creator.FitnessMax)
@@ -59,7 +58,7 @@ toolbox.register("mutate", npDressCode.mutate, indpb=0.2)
 toolbox.register("select", tools.selTournament, tournsize=5)
 
 # Generate population and run the algorithm
-population = toolbox.population(n=100)
+population = toolbox.population(n=500)
 hof = tools.HallOfFame(3)
 stats = tools.Statistics(key=lambda ind: ind.fitness.values)
 stats.register("avg", numpy.mean)
@@ -67,7 +66,7 @@ stats.register("std", numpy.std)
 stats.register("min", numpy.min)
 stats.register("max", numpy.max)
 
-result, logbook = algorithms.eaSimple(population, toolbox, cxpb=0.5, mutpb=0.2, ngen=100,
+result, logbook = algorithms.eaSimple(population, toolbox, cxpb=0.5, mutpb=0.2, ngen=10000,
                                       stats=stats, halloffame=hof, verbose=True)
 
 # Print results
@@ -88,4 +87,4 @@ sleeveRight = shapely.affinity.translate(right_sleeve, xoff=hof[0]['sleeve_right
 
 
 svgHelper.save_polygons_with_holes_to_svg(
-    waste, [front, back, sleeveLeft, sleeveRight], "images/bestCutOutWasteCentroidAsymmetry.svg")
+    waste, [front, back, sleeveLeft, sleeveRight], "images/bestCutOutWasteAsymmetry1000-10000.svg")

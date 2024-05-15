@@ -17,10 +17,10 @@ import wasteGeneration
 creator.create("FitnessMax", base.Fitness, weights=(1.0,))
 creator.create("Individual", dict, fitness=creator.FitnessMax)
 
-waste = [wasteGeneration.generate_a_polygon(((0, 200), (100, 600))),
-         wasteGeneration.generate_a_polygon(((200, 300), (50, 450))),
-         wasteGeneration.generate_a_polygon(((300, 500), (0, 350))),
-         wasteGeneration.generate_a_polygon(((400, 600), (200, 600)))]
+waste = [wasteGeneration.generate_a_polygon(((0, 400), (0, 200))),
+         wasteGeneration.generate_a_polygon(((200, 300), (0, 450))),
+         wasteGeneration.generate_a_polygon(((300, 500), (200, 350))),
+         wasteGeneration.generate_a_polygon(((450, 600), (200, 600)))]
 
 
 toolbox = base.Toolbox()
@@ -33,7 +33,7 @@ toolbox.register("mutate", npDressCode.mutate, indpb=0.2)
 toolbox.register("select", tools.selTournament, tournsize=5)
 
 # Generate population and run the algorithm
-population = toolbox.population(n=100)
+population = toolbox.population(n=500)
 hof = tools.HallOfFame(3)
 stats = tools.Statistics(key=lambda ind: ind.fitness.values)
 stats.register("avg", numpy.mean)
@@ -41,7 +41,7 @@ stats.register("std", numpy.std)
 stats.register("min", numpy.min)
 stats.register("max", numpy.max)
 
-result, logbook = algorithms.eaSimple(population, toolbox, cxpb=0.5, mutpb=0.2, ngen=100,
+result, logbook = algorithms.eaSimple(population, toolbox, cxpb=0.5, mutpb=0.2, ngen=5000,
                                       stats=stats, halloffame=hof, verbose=True)
 
 # Print results
@@ -62,5 +62,5 @@ sleeveRight = shapely.affinity.translate(right_sleeve, xoff=hof[0]['sleeve_right
 
 
 svgHelper.save_inPlace_polygons_to_svg(
-    [waste[0], front, waste[1], back, waste[2], sleeveLeft, waste[3], sleeveRight],
-    "images/bestRandomWasteCentroidAsymmetry.svg")
+    waste, [front, back, sleeveLeft, sleeveRight],
+    "images/bestRandomWasteAsymmetry.svg")

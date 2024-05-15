@@ -1,6 +1,7 @@
 from shapely.geometry import Polygon
 import random
 
+
 def create_wasteFabric(max_vertices=10, x_range=(0, 100), y_range=(0, 100)):
     num_vertices = random.randint(3, max_vertices)
     points = set()
@@ -16,4 +17,3 @@ def create_wasteFabric(max_vertices=10, x_range=(0, 100), y_range=(0, 100)):
         return poly
     else:
         return create_wasteFabric(max_vertices, x_range, y_range)  # Recursion to ensure a valid polygon
-
