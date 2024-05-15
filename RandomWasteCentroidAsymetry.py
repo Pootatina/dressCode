@@ -5,7 +5,7 @@ import numpy
 import shapely
 import shapely as shapely
 from deap import creator, base, tools, algorithms
-from shapely import Polygon
+from shapely import Polygon, MultiPolygon
 
 import dressCode
 import patternGeneratorAsymmetry
@@ -15,10 +15,10 @@ import wasteGeneration
 creator.create("FitnessMax", base.Fitness, weights=(1.0,))
 creator.create("Individual", dict, fitness=creator.FitnessMax)
 
-waste = [wasteGeneration.generate_random_polygon(((140, 300), (100, 350))),
-         wasteGeneration.generate_random_polygon(((140, 300), (100, 450))),
-         wasteGeneration.generate_random_polygon(((140, 250), (200, 350))),
-         wasteGeneration.generate_random_polygon(((140, 250), (200, 350)))]
+waste = MultiPolygon([wasteGeneration.generate_random_polygon(((0, 350), (30, 400))),
+         wasteGeneration.generate_random_polygon(((50, 200), (50, 500))),
+         wasteGeneration.generate_random_polygon(((10, 300), (100, 200))),
+         wasteGeneration.generate_random_polygon(((0, 500), (0, 500)))])
 
 # waste = [
 #     Polygon([(269, 289), (205, 188), (143, 308), (294, 285), (278, 133), (219, 340), (231, 314), (223, 311), (274, 113),
@@ -87,4 +87,4 @@ if not waste[3].contains(sleeveRight):
 
 svgHelper.save_polygons_to_svg(
     [waste[0], front, waste[1], back, waste[2], sleeveLeft, waste[3], sleeveRight],
-    "images/bestMultipleWasteCentroidAsymmetry.svg")
+    "images/bestRandomWasteCentroidAsymmetry.svg")

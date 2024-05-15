@@ -2,7 +2,7 @@ import random
 
 import shapely
 from deap import creator
-from shapely import Polygon, affinity
+from shapely import affinity
 
 import patternGeneratorAsymmetry
 import patternGeneratorSymmetry
@@ -10,7 +10,6 @@ import patternGeneratorSymmetry
 # Setup DEAP fitness and individual structures
 
 # Define possible values for the measurements
-import svgHelper
 
 '''measurements = [
     Measure(name='neckline_width', bounds=(20, 30)),
@@ -39,12 +38,13 @@ measurements = [
     'armhole_height_left', 'armhole_width_right', 'armhole_width_left',
     'sleeve_width_right', 'sleeve_width_left', 'sleeve_length_right',
     'sleeve_length_left', 'bust_width', 'side_length_right', 'side_length_left',
-    'waist_width'
+    'waist_width', 'front_x_shift', 'front_y_shift', 'back_x_shift', 'back_y_shift', 'sleeve_left_x_shift',
+    'sleeve_left_y_shift', 'sleeve_right_x_shift', 'sleeve_right_y_shift'
 ]
 bounds = [
     (20, 30), (5, 20), (2, 30), (0, 10), (0, 10), (20, 30), (20, 30), (0, 15),
     (0, 15), (25, 60), (0, 40), (0, 60), (0, 60), (50, 65), (20, 100), (20, 100),
-    (45, 100)
+    (45, 100), (-100, 100), (-100, 100), (-100, 100), (-100, 100), (-100, 100), (-100, 100), (-100, 100), (-100, 100)
 ]
 measurements_bounds_dict = dict(zip(measurements, bounds))
 
@@ -127,7 +127,7 @@ def evaluateCentroidAsymmetry(individual, waste):
     sleeveLeft = patternGeneratorAsymmetry.generate_left_sleeve_polygon(individual)
     sleeveRight = patternGeneratorAsymmetry.generate_right_sleeve_polygon(individual)
 
-    #accessing centroids
+    # accessing centroids
     frontCentroid = front.centroid
     backCentroid = back.centroid
     sleeveLeftCentroid = sleeveLeft.centroid
@@ -157,52 +157,41 @@ def evaluateCentroidAsymmetry(individual, waste):
 
     return (area,)  # Return a tuple with the area
 
+
 def evaluateCutOutAsymmetry(individual, waste):
-    # Generate polygons for each shirt component using a fictional pattern generator
+    # Generate polygons for each shirt component using the pattern generator
     front = patternGeneratorAsymmetry.generate_shirt_front_polygon(individual)
     back = patternGeneratorAsymmetry.generate_shirt_back_polygon(individual)
     sleeveLeft = patternGeneratorAsymmetry.generate_left_sleeve_polygon(individual)
     sleeveRight = patternGeneratorAsymmetry.generate_right_sleeve_polygon(individual)
 
-    # Translate each component to standardize starting positions
-    components = [front, back, sleeveLeft, sleeveRight]
-    components = [affinity.translate(comp, xoff=-150, yoff=-300) for comp in components]
+    # Translate each component based on individual's specific shift data
+    front = affinity.translate(front,
+                               xoff=individual['front_x_shift'],
+                               yoff=individual['front_y_shift'])
+    back = affinity.translate(back,
+                              xoff=individual['back_x_shift'],
+                              yoff=individual['back_y_shift'])
+    sleeveLeft = affinity.translate(sleeveLeft,
+                                    xoff=individual['sleeve_left_x_shift'],
+                                    yoff=individual['sleeve_left_y_shift'])
+    sleeveRight = affinity.translate(sleeveRight,
+                                     xoff=individual['sleeve_right_x_shift'],
+                                     yoff=individual['sleeve_right_y_shift'])
 
     # Initialize total area used
     area = 0
 
-    # Place each component into the waste polygon, check if placement was successful
-    for comp in components:
-        waste, placed = place(comp, waste)
-        if not placed:
-            return 0,
-        area += placed.area
+    # Check each component's placement within the waste material
+    # and ensure that components do not cross over each other
+    if waste.contains(front) and not (
+            front.intersects(back) or front.intersects(sleeveLeft) or front.intersects(sleeveRight)):
+        if waste.contains(back) and not (back.intersects(sleeveLeft) or back.intersects(sleeveRight)):
+            if waste.contains(sleeveLeft) and not sleeveLeft.intersects(sleeveRight):
+                if waste.contains(sleeveRight):
+                    # Sum the areas of all components if all conditions are met
+                    area = front.area + back.area + sleeveLeft.area + sleeveRight.area
 
-    # Save the final arrangement to SVG
-    svgHelper.save_polygons_cutout_to_svg([waste] + components, "images/test.svg")
-
-    return (area,)
-
-def place(pattern, waste):
-    """ Try to place a pattern onto the waste material; translate randomly if not fitting. """
-    for attempt in range(1000):  # Attempt placement up to 1000 times
-        if waste.contains(pattern):
-            new_holes = list(waste.interiors) + [pattern.exterior.coords]
-            waste = Polygon(waste.exterior, new_holes)
-            return waste, pattern
-        pattern = affinity.translate(pattern, xoff=random.randint(0, 600), yoff=random.randint(0, 600))
-    return waste, None
-
-def evaluateMove(individual, waste):
-    shapely.affinity.translate(waste, xoff=50, yoff=100, zoff=0.0)
-    if waste.contains(patternGeneratorSymmetry.generate_shirt_front_polygon(individual)):
-        back = patternGeneratorSymmetry.generate_shirt_back_polygon(individual)
-        front = patternGeneratorSymmetry.generate_shirt_front_polygon(individual)
-        sleeveLeft = patternGeneratorSymmetry.generate_sleeve_polygon(individual)
-        sleeveRight = patternGeneratorSymmetry.generate_sleeve_polygon(individual)
-        area = back.area + front.area + sleeveLeft.area + sleeveRight.area  # Access the area property correctly
-    else:
-        area = 0
     return (area,)  # Return a tuple with the area
 
 
@@ -225,6 +214,8 @@ def mutateNew(individual, indpb):
     """ Custom mutation that mutates an integer in a dictionary based on its specific bounds. """
     for key in individual:
         if random.random() < indpb:
+            if key == 'x_shift' or key == 'y_shift':
+                individual[key] = individual[key] - random.randint(-5, 5)
             individual[key] = random.randint(measurements_bounds_dict[key][0], measurements_bounds_dict[key][1])
     return individual,
 
@@ -234,7 +225,9 @@ def mutateDiff(individual, indpb):
     for key in individual:
         if random.random() < indpb:
             diff = random.randint(-5, 5)
-            if measurements_bounds_dict[key][0] <= (individual[key] - diff) <= measurements_bounds_dict[key][1]:
+            if key == 'x_shift' or key == 'y_shift':
+                individual[key] = individual[key] - diff
+            elif measurements_bounds_dict[key][0] <= (individual[key] - diff) <= measurements_bounds_dict[key][1]:
                 individual[key] = individual[key] - diff
             elif measurements_bounds_dict[key][0] <= (individual[key] + diff) <= measurements_bounds_dict[key][1]:
                 individual[key] = individual[key] + diff
