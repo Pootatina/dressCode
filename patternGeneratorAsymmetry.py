@@ -1,3 +1,4 @@
+import shapely
 from shapely.geometry import Polygon
 
 import bezierCode
@@ -48,8 +49,9 @@ def generate_shirt_back_polygon(measurements):
     # Points list, including curves
     points = [point_a, *curve_left, *neckline_curve, point_g, *curve_right, point_j, point_a]
 
-    # Create the polygon from the points
-    polygon = Polygon(points)
+    # Create the polygon from the points and shift it
+    polygon = shapely.affinity.translate(Polygon(points), xoff=-50,
+                                         yoff=-200, zoff=0.0)
     return polygon
 
 
@@ -97,8 +99,9 @@ def generate_shirt_front_polygon(measurements):
     # Points list, including curves
     points = [point_a, *curve_left, *neckline_curve, point_g, *curve_right, point_j, point_a]
 
-    # Create the polygon from the points
-    polygon = Polygon(points)
+    # Create the polygon from the points and shift it
+    polygon = shapely.affinity.translate(Polygon(points), xoff=-50,
+                                         yoff=-200, zoff=0.0)
     return polygon
 
 
@@ -128,8 +131,9 @@ def generate_left_sleeve_polygon(measurements):
     # Points list, including curves
     points = [point_a, *curve_left, *curve_right, point_e, point_a]
 
-    # Create the polygon from the points
-    polygon = Polygon(points)
+    # Create the polygon from the points and shift it
+    polygon = shapely.affinity.translate(Polygon(points), xoff=-50,
+                                         yoff=-200, zoff=0.0)
     return polygon
 
 
@@ -158,8 +162,9 @@ def generate_right_sleeve_polygon(measurements):
     # Points list, including curves
     points = [point_a, *curve_left, *curve_right, point_e, point_a]
 
-    # Create the polygon from the points
-    polygon = Polygon(points)
+    # Create the polygon from the points and shift it
+    polygon = shapely.affinity.translate(Polygon(points), xoff=-50,
+                                         yoff=-200, zoff=0.0)
     return polygon
 
 
